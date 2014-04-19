@@ -7,27 +7,19 @@
 ;; a given minimal network
 (setf min '((a b c) (b c) (c d)))
 
+(setf min2 '((a b c) (b c e) (c d f)))
+
+
+
 ;; example use: find the shortest path from 'a' to 'd' given a network
 ;; 'min'
 
 (shortest-path 'a 'd min)
+(shortest-path 'a 'f min2) 		;(A C F)
 
-;; examples of graph structures from Land of Lisp
+(my-graph->dot min) 			;digraph{A->B;A->C;B->C;C->D;}"}"
 
-(defparameter *wizard-nodes* '((living-room (you are in the living-room.
-                                             ))
-                               (garden (you are you.))
-                               (attic (you are in the))))
-
-(defparameter *wizard-edges* '((living-room (garden west door)  
-                                (attic upstairs ladder))
-                               (garden (living-room east door))
-                               (attic (living-room downstairs ladder))))
-
-;; needed for conversion note, uses the COMPLEMENT technique to find
-;; non-alphanumeric characters. substitute-if replaces any character
-;; that satisfies the predicate with its first argument, in this case
-;; the escaped underscore character.
+(my-graph->png "min2" min2)		;creates two files in home directory
 
 (defun dot-name (exp)
   (substitute-if #\_ (complement #'alphanumericp) (prin1-to-string exp)))
@@ -57,7 +49,9 @@
 (defun shortest-path (start end net)
   (bfs end (list (list start)) net))
 
-;; Barski's code
+;;; Barski's 
+
+;; take care of proper labeling for DOT format
 (defun dot-label (exp)
   (if exp
       (let ((s (write-to-string exp :pretty nil)))
@@ -65,6 +59,8 @@
             (concatenate 'string (subseq s 0 (- *max-label-length* 3)) "...")
             s))
       ""))
+
+;; properly format nodes for DOT format
 
 (defun nodes->dot (nodes)
   (mapc (lambda (node)
@@ -75,12 +71,13 @@
           (princ "\"];"))
         nodes))
 
+;; properly format edges between nodes for DOT format
 (defun edges->dot (edges)
   (mapc (lambda (node)
           (mapc (lambda (edge)
                   (fresh-line)
                   (princ (dot-name (car node)))
-                  (princ "->")
+                  (princ "->") 		;DOT uses 'arrow' for an edge
                   (princ (dot-name (car edge)))
                   (princ "[label=\"")
                   (princ (dot-label (cdr edge)))
@@ -88,25 +85,39 @@
                 (cdr node)))
         edges))
 
+;; take a directed graph of nodes and edges, process them and wrap
+;; them in the proper DOT format. use of PRINC throughout ensures that
+;; output will be a string to a stream that needs to be captured
+
 (defun dgraph->dot (nodes edges)
   (princ "digraph{")
   (nodes->dot nodes)
   (edges->dot edges)
   (princ "}"))
 
-;; how to create a file for use with graphviz
+
+;; how to create a file for use with graphviz, using a filename FNAME
+;; and a THUNK argument that will produce the output piped into the
+;; file
+
 (defun dot->png (fname thunk)
   (with-open-file (*standard-output*
 		   (concatenate 'string fname ".dot") :direction :output :if-exists :supersede)
     (funcall thunk))
+  ;; CLISP has a shell library that we use here
   (ext:shell (concatenate 'string "dot -Tpng -O " fname ".dot")))
 
+;;; create the DOT file given the nodes and edges
 (defun dgraph->png (fname nodes edges)
   (dot->png fname
+	    ;; anonymous function as the THUNK
             (lambda ()
               (dgraph->dot nodes edges))))
 
-;; my code for building up the needed node data for sending off
+;;; my code for building up the needed node data for sending off
+;;; recursively chew through a NODE-LIST
+
+;; what structure is the node-list in? See PG network above?
 (defun build-nodes (node-list)
   (let* ((head (car node-list))
 	 (tail (cdr node-list)))
@@ -116,26 +127,37 @@
 			      (rec (cdr lst)))))))
       (rec tail))))
 
+;;; print a pair of nodes with an arrow for DOT format
 (defun convert (cns)
   (princ (car cns))
   (princ "->")
   (princ (cadr cns))
   (princ ";"))
 
+;;; my version of the Barski function above. Because it is not taking
+;;; NODES-EDGES pairs, but instead NODE-LST a la Graham, I needed to
+;;; build my own little processing in between the DOT digraph
+;;; directive
+
 (defun my-graph->dot (node-lst)
   (princ "digraph{")
   (mapcar #'convert (mapcan #'build-nodes node-lst))
   (princ "}"))
 
-;; the master function for creating png files of graphs
+;;; my version of the master function for creating png files of
+;;; networks. top-level. see above.
+
 (defun my-graph->png (fname node-lst)
   "produces graphs given a filename and list of nodes"
   (dot->png fname
 	    (lambda ()
 	      (my-graph->dot node-lst))))
 
-;(defun run ()
-;  (ugraph->png "wizard" *nodes* *edges*))
+;;; how to create undirected graphs instead
+;;; use as model for future modification
+
+;; (defun run ()
+;;   (ugraph->png "wizard" *nodes* *edges*))
 
 (defun uedges->dot (edges)
   (maplist (lambda (lst)
@@ -164,17 +186,21 @@
             (lambda ()
               (ugraph->dot nodes edges))))
 
-;; simple with-open-file examples
+
+;;; simple with-open-file examples. useful for saving output to a file
 
 
 (defun write-junk (fname str-message)
   "creates .txt files with a given fname, containing messages passed in as strings"
-	   (with-open-file (*standard-output*
-			    (concatenate 'string fname ".txt")
-			    :direction :output
-			    :if-exists :supersede)
-	     (princ str-message)))
+  (with-open-file (*standard-output*
+		   (concatenate 'string fname ".txt")
+		   :direction :output
+		   :if-exists :supersede)
+    (princ str-message)))
 
+
+;;; model for .txt version above. not useful as is because of built-in
+;;; string message
 
 ;; version of function used to create files. here explicitly called
 ;; using PRINC and an existing digraph structure
