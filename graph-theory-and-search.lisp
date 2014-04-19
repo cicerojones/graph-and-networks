@@ -7,7 +7,12 @@
 ;; a given minimal network
 (setf min '((a b c) (b c) (c d)))
 
+;; example use: find the shortest path from 'a' to 'd' given a network
+;; 'min'
+
 (shortest-path 'a 'd min)
+
+;; examples of graph structures from Land of Lisp
 
 (defparameter *wizard-nodes* '((living-room (you are in the living-room.
                                              ))
@@ -19,6 +24,11 @@
                                (garden (living-room east door))
                                (attic (living-room downstairs ladder))))
 
+;; needed for conversion note, uses the COMPLEMENT technique to find
+;; non-alphanumeric characters. substitute-if replaces any character
+;; that satisfies the predicate with its first argument, in this case
+;; the escaped underscore character.
+
 (defun dot-name (exp)
   (substitute-if #\_ (complement #'alphanumericp) (prin1-to-string exp)))
 
@@ -27,8 +37,10 @@
 
 ;; PG's code from book examples
 
-(defun shortest-path (start end net)
-  (bfs end (list (list start)) net))
+(defun new-paths (path node net)
+  (mapcar #'(lambda (n)
+	      (cons n path))
+	  (cdr (assoc node net))))
 
 (defun bfs (end queue net)
   (if (null queue)
@@ -42,10 +54,8 @@
 			   (new-paths path node net))
 		   net))))))
 
-(defun new-paths (path node net)
-  (mapcar #'(lambda (n)
-	      (cons n path))
-	  (cdr (assoc node net))))
+(defun shortest-path (start end net)
+  (bfs end (list (list start)) net))
 
 ;; Barski's code
 (defun dot-label (exp)
@@ -166,13 +176,17 @@
 	     (princ str-message)))
 
 
+;; version of function used to create files. here explicitly called
+;; using PRINC and an existing digraph structure
+
 (defun write-junk-digraphs (fname)
-  "creates a single, simple static messages for parsing by graph to png functions"
+  "creates a single, simple static messages for parsing by graph-to-png functions"
   (with-open-file (*standard-output*
 		   (concatenate 'string fname ".dot") 
 		   :direction :output 
 		   :if-exists :supersede)
     (princ "digraph {a->b; a->c;}")))
+
 
 ;; (write-junk-digraphs "testes5")
 
