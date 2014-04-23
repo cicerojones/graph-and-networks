@@ -1,0 +1,4 @@
+digraph{
+HOME[label="(HOME (WHERE THE HEART ETC))"];
+BAR[label="(BAR (WHEREVERY BODY KNOWS))"];
+HOME->BAR[label=""];}

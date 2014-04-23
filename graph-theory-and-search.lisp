@@ -14,6 +14,8 @@
 (my-graph->dot min) 			;digraph{A->B;A->C;B->C;C->D;}"}"
 (my-graph->png "min2" min2)		;creates two files in home directory
 
+
+;;;; evaluate region from here down
 (setf min '((a b c) (b c) (c d)))
 (setf min2 '((a b c) (b c e) (c d f)))
 
@@ -102,7 +104,9 @@
   ;; CLISP has a shell library that we use here
   (ext:shell (concatenate 'string "dot -Tpng -O " fname ".dot")))
 
-;;; create the DOT file given the nodes and edges
+;;; create the DOT file given the nodes and edges. primarily serves to
+;;; wrap a call to the dot->png function
+
 (defun dgraph->png (fname nodes edges)
   (dot->png fname
 	    ;; anonymous function as the THUNK
