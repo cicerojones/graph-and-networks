@@ -3,8 +3,23 @@
 ;;; graphs
 
 
-;; a given minimal network
+A network structure is being represented here as /assoc-lists/. 
+
+Recall what an an assoc-list is. 
+
+#+BEGIN_QUOTE
+It is also natural to use conses to represent mappings. A list of
+conses is called an /assoc-list/ or /alist/.
+#+END_QUOTE
+
+Graham goes on to say that alists are "convenient in the first stages
+of a program."
+
+In this case, we show a network as: src_<lisp>{(node . neighbors)}
+
+
 #+BEGIN_SRC lisp
+;; a given minimal network
 (setf min '((a b c) (b c) (c d)))
 #+END_SRC
 
