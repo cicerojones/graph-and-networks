@@ -15,7 +15,7 @@ conses is called an /assoc-list/ or /alist/.
 Graham goes on to say that alists are "convenient in the first stages
 of a program."
 
-In this case, we show a network as: src_<lisp>{(node . neighbors)}
+In this case, we show a network as: (/node/ . /neighbors/)
 
 
 #+BEGIN_SRC lisp

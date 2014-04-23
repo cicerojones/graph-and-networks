@@ -1,15 +1,9 @@
-
-;;; unrelated exploration of both Land of Lisp code for drawing
-;;; graphs and ANSI Common Lisp code for doing breadth-first-search of
-;;; graphs
-
+;;; exploration of both Land of Lisp code for drawing graphs and ANSI
+;;; Common Lisp code for doing breadth-first-search of graphs
 
 ;; a given minimal network
 (setf min '((a b c) (b c) (c d)))
-
 (setf min2 '((a b c) (b c e) (c d f)))
-
-
 
 ;; example use: find the shortest path from 'a' to 'd' given a network
 ;; 'min'
@@ -18,14 +12,15 @@
 (shortest-path 'a 'f min2) 		;(A C F)
 
 (my-graph->dot min) 			;digraph{A->B;A->C;B->C;C->D;}"}"
-
 (my-graph->png "min2" min2)		;creates two files in home directory
+
+(setf min '((a b c) (b c) (c d)))
+(setf min2 '((a b c) (b c e) (c d f)))
 
 (defun dot-name (exp)
   (substitute-if #\_ (complement #'alphanumericp) (prin1-to-string exp)))
 
 (defparameter *max-label-length* 30)
-
 
 ;; PG's code from book examples
 
@@ -152,77 +147,3 @@
   (dot->png fname
 	    (lambda ()
 	      (my-graph->dot node-lst))))
-
-;;; how to create undirected graphs instead
-;;; use as model for future modification
-
-;; (defun run ()
-;;   (ugraph->png "wizard" *nodes* *edges*))
-
-(defun uedges->dot (edges)
-  (maplist (lambda (lst)
-             (mapc (lambda (edge)
-                     (unless (assoc (car edge) (cdr lst))
-                       (fresh-line)
-                       (princ (dot-name (caar lst)))
-                       (princ "--")
-                       (princ (dot-name (car edge)))
-                       (princ "[label=\"")
-                       (princ (dot-label (cdr edge)))
-                       (princ "\"];")))
-                   (cdar lst)))
-           edges))
-  
-(defun ugraph->dot (nodes edges)
-  (princ "graph{")
-  (nodes->dot nodes)
-  (uedges->dot edges)
-  (princ "}"))
-
-
-
-(defun ugraph->png (fname nodes edges)
-  (dot->png fname
-            (lambda ()
-              (ugraph->dot nodes edges))))
-
-
-;;; simple with-open-file examples. useful for saving output to a file
-
-
-(defun write-junk (fname str-message)
-  "creates .txt files with a given fname, containing messages passed in as strings"
-  (with-open-file (*standard-output*
-		   (concatenate 'string fname ".txt")
-		   :direction :output
-		   :if-exists :supersede)
-    (princ str-message)))
-
-
-;;; model for .txt version above. not useful as is because of built-in
-;;; string message
-
-;; version of function used to create files. here explicitly called
-;; using PRINC and an existing digraph structure
-
-(defun write-junk-digraphs (fname)
-  "creates a single, simple static messages for parsing by graph-to-png functions"
-  (with-open-file (*standard-output*
-		   (concatenate 'string fname ".dot") 
-		   :direction :output 
-		   :if-exists :supersede)
-    (princ "digraph {a->b; a->c;}")))
-
-
-;; (write-junk-digraphs "testes5")
-
-'((a b c) (b c) (c d))
-
-(let ((ex '(a b)))
-  (labels 
-      ((convert (cns)
-	 (princ (car cns))
-	 (princ "->")
-	 (princ (cadr cns))
-	 (princ ";")))
-    (convert ex)))
