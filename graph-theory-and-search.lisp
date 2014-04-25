@@ -22,7 +22,7 @@
 
 (shortest-path 'a 'd min)
 
-;; (trace bfs)
+;; (trace bfs) in order to see the queue calls invoked
 
 (defun new-paths (path node net)
   (mapcar #'(lambda (n)
